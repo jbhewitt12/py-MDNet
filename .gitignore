@@ -3,6 +3,8 @@ result_fig
 models/tmp
 tracking/tmp
 modules/*.pyc
+modules/__pycache__/*.pyc
 pretrain/*.pyc
 tracking/*.pyc
+tracking/__pycache__/*.pyc
 models/imagenet-vgg-m.mat
