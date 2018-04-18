@@ -8,3 +8,6 @@ pretrain/*.pyc
 tracking/*.pyc
 tracking/__pycache__/*.pyc
 models/imagenet-vgg-m.mat
+dataset/vot2013
+dataset/vot2014
+dataset/vot2015

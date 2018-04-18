@@ -72,6 +72,8 @@ class MDNet(nn.Module):
             if os.path.splitext(model_path)[1] == '.pth':
                 self.load_model(model_path)
             elif os.path.splitext(model_path)[1] == '.mat':
+                print("model_path: \n", model_path)
+                print("\n")
                 self.load_mat_model(model_path)
             else:
                 raise RuntimeError("Unkown model format: %s" % (model_path))
@@ -125,6 +127,8 @@ class MDNet(nn.Module):
         self.layers.load_state_dict(shared_layers)
     
     def load_mat_model(self, matfile):
+        print("matfile: \n", matfile)
+        print("\n")
         mat = scipy.io.loadmat(matfile)
         mat_layers = list(mat['layers'])[0]
         

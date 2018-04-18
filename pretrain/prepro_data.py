@@ -4,16 +4,25 @@ import pickle
 from collections import OrderedDict
 
 seq_home = '../dataset/'
-seqlist_path = 'data/vot-otb.txt'
+seqlist_path = 'data/vot-josh.txt'
 output_path = 'data/vot-otb.pkl'
 
 with open(seqlist_path,'r') as fp:
     seq_list = fp.read().splitlines()
+    print("seq_list: \n", seq_list)
+    print("\n")
 
 data = {}
 for i,seq in enumerate(seq_list):
     img_list = sorted([p for p in os.listdir(seq_home+seq) if os.path.splitext(p)[1] == '.jpg'])
     gt = np.loadtxt(seq_home+seq+'/groundtruth.txt',delimiter=',')
+
+    print("current seq: \n", seq_home+seq)
+    print("\n")
+    print("img_list: \n", len(img_list))
+    print("\n")
+    print("gt: \n", len(gt)) 
+    print("\n")
 
     assert len(img_list) == len(gt), "Lengths do not match!!"
     
