@@ -15,12 +15,31 @@ def gen_config(args):
         img_dir = os.path.join(seq_home, seq_name)
         gt_path = os.path.join(seq_home, seq_name, 'groundtruth.txt')
 
+
         img_list = os.listdir(img_dir)
         img_list.sort()
+        newlist = []
+        for names in img_list:
+            if names.endswith(".jpg"):
+                newlist.append(names)
+        img_list = newlist
+        # print('newlist: ')
+        # print(newlist)
+        # print('img_list before: ')
+        # print(img_list)
         img_list = [os.path.join(img_dir,x) for x in img_list]
+        print('img_list: ')
+        print(img_list)
+
 
         gt = np.loadtxt(gt_path,delimiter=',')
+        
+        if(len(gt[0]) == 8):
+            gt = convert_groundtruth(gt)
+
         init_bbox = gt[0]
+        
+
         
         savefig_dir = os.path.join(save_home,seq_name)
         result_dir = os.path.join(result_home,seq_name)
@@ -46,3 +65,28 @@ def gen_config(args):
         savefig_dir = ''
 
     return img_list, init_bbox, gt, savefig_dir, args.display, result_path
+
+#                                 python run_tracker.py -s vot2014/bicycle -d
+def convert_groundtruth(gt):
+    print("converting gt")
+    print('gt: ')
+    print(gt)
+    # print(len(gt))
+    truths = []
+    
+
+    for row in gt:
+        box = []
+        box.append(row[2])
+        box.append(row[3])
+        box.append(abs(row[2] - row[4]))
+        box.append(abs(row[1] - row[3]))
+        truths.append(box)
+
+    truths = np.asarray(truths)
+    print('truths:')
+    print(truths)
+    return truths
+
+
+

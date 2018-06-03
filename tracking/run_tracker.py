@@ -122,6 +122,10 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
     target_bbox = np.array(init_bbox)
     result = np.zeros((len(img_list),4))
     result_bb = np.zeros((len(img_list),4))
+    print('result: ')
+    print(result)
+    print('target_bbox: ')
+    print(target_bbox)
     result[0] = target_bbox
     result_bb[0] = target_bbox
 
