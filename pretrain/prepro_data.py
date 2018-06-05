@@ -4,7 +4,7 @@ import pickle
 from collections import OrderedDict
 
 seq_home = '../dataset/'
-seqlist_path = 'data/vot-josh.txt'
+seqlist_path = 'data/vot-training-sequences.txt'
 output_path = 'data/vot-otb.pkl'
 
 with open(seqlist_path,'r') as fp:

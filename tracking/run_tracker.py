@@ -122,12 +122,12 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
     target_bbox = np.array(init_bbox)
     result = np.zeros((len(img_list),4))
     result_bb = np.zeros((len(img_list),4))
-    print('result: ')
-    print(result)
-    print('target_bbox: ')
+    print('initial bbox: ')
     print(target_bbox)
     result[0] = target_bbox
     result_bb[0] = target_bbox
+    total_overlap = 0
+    count = 0
 
     # Init model
     model = MDNet(opts['model_path'])
@@ -304,13 +304,23 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
             if savefig:
                 fig.savefig(os.path.join(savefig_dir,'%04d.jpg'%(i)),dpi=dpi)
 
+        overlap = overlap_ratio(gt[i],result_bb[i])[0]
+
         if gt is None:
             print("Frame %d/%d, Score %.3f, Time %.3f" % \
                 (i, len(img_list), target_score, spf))
         else:
+            
             print("Frame %d/%d, Overlap %.3f, Score %.3f, Time %.3f" % \
-                (i, len(img_list), overlap_ratio(gt[i],result_bb[i])[0], target_score, spf))
+                (i, len(img_list), overlap, target_score, spf))
+            
+        total_overlap += overlap
+        count += 1
 
+    print('count')
+    print(count)
+    print('mean overlap:')
+    print(total_overlap/count)
     fps = len(img_list) / spf_total
     return result, result_bb, fps
 

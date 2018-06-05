@@ -28,12 +28,13 @@ def gen_config(args):
         # print('img_list before: ')
         # print(img_list)
         img_list = [os.path.join(img_dir,x) for x in img_list]
-        print('img_list: ')
-        print(img_list)
+        # print('img_list: ')
+        # print(img_list)
 
 
         gt = np.loadtxt(gt_path,delimiter=',')
-        
+        print('no of groundtruths:')
+        print(len(gt))
         if(len(gt[0]) == 8):
             gt = convert_groundtruth(gt)
 
@@ -67,26 +68,60 @@ def gen_config(args):
     return img_list, init_bbox, gt, savefig_dir, args.display, result_path
 
 #                                 python run_tracker.py -s vot2014/bicycle -d
+
+# def convert_groundtruth(gt):
+#     print("converting gt")
+#     print('gt: ')
+#     print(gt)
+#     # print(len(gt))
+#     truths = []
+    
+
+#     for row in gt:
+#         box = []
+#         box.append(row[2])
+#         box.append(row[3])
+#         box.append(abs(row[2] - row[4]))
+#         box.append(abs(row[1] - row[3]))
+#         truths.append(box)
+
+#     truths = np.asarray(truths)
+#     print('truths:')
+#     print(truths)
+#     return truths
+
 def convert_groundtruth(gt):
-    print("converting gt")
-    print('gt: ')
-    print(gt)
+    # print("converting gt")
+    # print('gt: ')
+    # print(gt)
     # print(len(gt))
     truths = []
     
 
     for row in gt:
+        xvals = [row[0],row[2],row[4],row[6]]
+        yvals = [row[1],row[3],row[5],row[7]]
+        top = max(yvals)
+        bottom = min(yvals)
+        left = min(xvals)
+        right = max(xvals)
         box = []
-        box.append(row[2])
-        box.append(row[3])
-        box.append(abs(row[2] - row[4]))
-        box.append(abs(row[1] - row[3]))
+        # print('------********')
+        # print(xvals)
+        # print(yvals)
+        # print(top)
+        # print(bottom)
+        # print(left)
+        # print(right)
+        box.append(left)
+        box.append(bottom)
+        box.append(abs(right - left))
+        box.append(abs(top - bottom))
         truths.append(box)
 
     truths = np.asarray(truths)
-    print('truths:')
-    print(truths)
+    # print('truths:')
+    # print(truths)
     return truths
-
 
 
