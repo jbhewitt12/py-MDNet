@@ -112,22 +112,34 @@ def train(model, criterion, optimizer, pos_feats, neg_feats, maxiter, in_layer='
         loss.backward()
         torch.nn.utils.clip_grad_norm(model.parameters(), opts['grad_clip'])
         optimizer.step()
-
+        reinitialize = False
         #print "Iter %d, Loss %.4f" % (iter, loss.data[0])
 
 
-def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
+def run_mdnet(img_list, init_bbox, vals, gt=None, savefig_dir='', display=False):
+
+    # print(img_list)
+    # print(init_bbox)
+    # print(gt)
+    # print(savefig_dir)
+    # print(display)
 
     # Init bbox
-    target_bbox = np.array(init_bbox)
+    target_bbox = np.array(init_bbox) #Starting Bounding Box
     result = np.zeros((len(img_list),4))
     result_bb = np.zeros((len(img_list),4))
     print('initial bbox: ')
     print(target_bbox)
     result[0] = target_bbox
     result_bb[0] = target_bbox
-    total_overlap = 0
     count = 0
+    total_overlap = 0
+    overlap_count = 0
+    Nburnin = 10
+    global global_overlap_count
+    global global_total_overlap
+    global global_frame_count
+    
 
     # Init model
     model = MDNet(opts['model_path'])
@@ -191,7 +203,7 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
         ax = plt.Axes(fig, [0., 0., 1., 1.])
         ax.set_axis_off()
         fig.add_axes(ax)
-        im = ax.imshow(image, aspect='auto')
+        im = ax.imshow(image, aspect='equal')
 
         if gt is not None:
             gt_rect = plt.Rectangle(tuple(gt[0,:2]),gt[0,2],gt[0,3], 
@@ -223,7 +235,7 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
         target_score = top_scores.mean()
         target_bbox = samples[top_idx].mean(axis=0)
 
-        success = target_score > opts['success_thr']
+        success = target_score > opts['success_thr'] #Success if target_score is greater than success threshold
         
         # Expand search area at failure
         if success:
@@ -246,8 +258,8 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
             bbreg_bbox = result_bb[i-1]
         
         # Save result
-        result[i] = target_bbox
-        result_bb[i] = bbreg_bbox
+        result[i] = target_bbox 
+        result_bb[i] = bbreg_bbox #result bbox saved here
 
         # Data collect
         if success:
@@ -287,6 +299,26 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
 
         # Display
         if display or savefig:
+            #--------------------------------------------- remove this part at end
+            dpi = 80.0
+            figsize = (image.size[0]/dpi, image.size[1]/dpi)
+
+            fig = plt.figure(frameon=False, figsize=figsize, dpi=dpi)
+            ax = plt.Axes(fig, [0., 0., 1., 1.])
+            ax.set_axis_off()
+            fig.add_axes(ax)
+            im = ax.imshow(image, aspect='equal')
+
+            if gt is not None:
+                gt_rect = plt.Rectangle(tuple(gt[0,:2]),gt[0,2],gt[0,3], 
+                        linewidth=3, edgecolor="#00ff00", zorder=1, fill=False)
+                ax.add_patch(gt_rect)
+            
+            rect = plt.Rectangle(tuple(result_bb[0,:2]),result_bb[0,2],result_bb[0,3], 
+                    linewidth=3, edgecolor="#ff0000", zorder=1, fill=False)
+            ax.add_patch(rect)
+            #----------------------------------------------
+
             im.set_data(image)
 
             if gt is not None:
@@ -302,27 +334,73 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
                 plt.pause(.01)
                 plt.draw()
             if savefig:
-                fig.savefig(os.path.join(savefig_dir,'%04d.jpg'%(i)),dpi=dpi)
+                fig.savefig(os.path.join(savefig_dir,'%04d.jpg'%(global_frame_count)),dpi=dpi)
+                plt.close('all')
+                print('dpi:')
+                print(dpi)
 
-        overlap = overlap_ratio(gt[i],result_bb[i])[0]
 
         if gt is None:
             print("Frame %d/%d, Score %.3f, Time %.3f" % \
                 (i, len(img_list), target_score, spf))
         else:
-            
+            overlap = overlap_ratio(gt[i],result_bb[i])[0]
             print("Frame %d/%d, Overlap %.3f, Score %.3f, Time %.3f" % \
                 (i, len(img_list), overlap, target_score, spf))
             
-        total_overlap += overlap
-        count += 1
+        if(count > Nburnin):
+            total_overlap += overlap #only count towards mean overlap after Nburnin = 10 frames have passed since initialization  
+            overlap_count += 1
+            global_overlap_count += overlap
+            global_total_overlap += 1
+             
 
-    print('count')
-    print(count)
-    print('mean overlap:')
-    print(total_overlap/count)
+        count += 1
+        global_frame_count += 1
+        # if count > 6:
+        #     return
+        if(overlap == 0):
+            new_img_list = []
+            new_gt = []
+            Nskip = 5
+            for j in range(i + Nskip + 1, len(img_list)): #here we create a new image list and skip 5 frames
+                new_img_list.append(img_list[j])
+
+            for k in range(i + Nskip + 1, len(gt)):
+                new_gt.append(gt[k])
+
+            new_gt = np.asarray(new_gt)
+            init_bbox = new_gt[0]
+            # print(gt)
+            # print(gt[i])
+            # print(gt[i+6])
+            # print('new:')
+            # print(new_gt)
+            vals['total_overlap'] += total_overlap
+            vals['overlap_count'] += overlap_count
+            vals['reinitializations'] += 1
+            print('before calling run_mdnet')
+            print (vals['total_overlap'])
+            print('/')
+            print (vals['overlap_count'])
+            result, result_bb, fps, vals = run_mdnet(new_img_list, init_bbox, vals, new_gt, savefig_dir, display)
+
+            print('after calling run_mdnet')
+            print (vals['total_overlap'])
+            print('/')
+            print (vals['overlap_count'])
+            fps = len(img_list) / spf_total
+            return result, result_bb, fps, vals #
+
+    vals['total_overlap'] += total_overlap
+    vals['overlap_count'] += overlap_count
+    
+    print('result:')
+    print(result)
+    print('result_bb: ')
+    print(result_bb)
     fps = len(img_list) / spf_total
-    return result, result_bb, fps
+    return result, result_bb, fps, vals
 
 
 if __name__ == "__main__":
@@ -333,14 +411,42 @@ if __name__ == "__main__":
     parser.add_argument('-f', '--savefig', action='store_true')
     parser.add_argument('-d', '--display', action='store_true')
     
+    global global_overlap_count
+    global global_total_overlap
+    global global_frame_count
+    global_frame_count = 0
+    global_overlap_count = 0
+    global_total_overlap = 0
+
     args = parser.parse_args()
     assert(args.seq != '' or args.json != '')
+    vals = {
+    'total_overlap' : 0,
+    'overlap_count' : 0,
+    'reinitializations': 0
+    }
     
     # Generate sequence config
     img_list, init_bbox, gt, savefig_dir, display, result_path = gen_config(args)
 
     # Run tracker
-    result, result_bb, fps = run_mdnet(img_list, init_bbox, gt=gt, savefig_dir=savefig_dir, display=display)
+    result, result_bb, fps, vals = run_mdnet(img_list, init_bbox, vals, gt=gt, savefig_dir=savefig_dir, display=display)
+
+    print('vals[overlap_count]: ')
+    print(vals['overlap_count'])
+    print('vals[total_overlap]: ')
+    print(vals['total_overlap'])
+    print('vals[reinitializations]: ')
+    print(vals['reinitializations'])
+
+    print('global_overlap_count: ')
+    print(global_overlap_count)
+    print('global_total_overlap: ')
+    print(global_total_overlap)
+
+    mean_overlap = vals['total_overlap']/vals['overlap_count']
+    print('FINAL mean_overlap:')
+    print(mean_overlap)
     
     # Save result
     res = {}
@@ -348,3 +454,4 @@ if __name__ == "__main__":
     res['type'] = 'rect'
     res['fps'] = fps
     json.dump(res, open(result_path, 'w'), indent=2)
+    
