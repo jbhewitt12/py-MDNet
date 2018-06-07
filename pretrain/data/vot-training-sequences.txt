@@ -1,10 +1,3 @@
-vot2015/sphere
-vot2015/wiper
-vot2015/tunnel
-vot2015/traffic
-vot2015/tiger
-vot2015/soldier
-vot2015/marching
 vot2016/bag
 vot2016/ball1
 vot2016/ball2

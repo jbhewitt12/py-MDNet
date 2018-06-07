@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 
-def gen_config(args):
+def gen_config(args, i):
 
     if args.seq != '':
         # generate config from a sequence name
@@ -11,7 +11,23 @@ def gen_config(args):
         save_home = '../result_fig'
         result_home = '../result'
         
-        seq_name = args.seq
+        seq_list = [
+        "david",
+        "diving",
+        "drunk",
+        "hand1",
+        "jogging",
+        "polarbear",
+        "skating",
+        "sunshade",
+        "surfing",
+        "torus",
+        "trellis",
+        "woman"
+        ]
+        print("**SEQUENCE:")
+        print(seq_list[i])
+        seq_name = "vot2014/"+seq_list[i]
         img_dir = os.path.join(seq_home, seq_name)
         gt_path = os.path.join(seq_home, seq_name, 'groundtruth.txt')
 
