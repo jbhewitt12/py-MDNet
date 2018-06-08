@@ -1,6 +1,6 @@
 # py-MDNet
 
-##Fork notes
+## Fork notes
 
 This is a fork of [py-MDNet](https://github.com/HyeonseobNam/py-MDNet) by [Hyeonseob Nam](https://kr.linkedin.com/in/hyeonseob-nam/) and [Bohyung Han](http://cvlab.postech.ac.kr/~bhhan/) at POSTECH
 
