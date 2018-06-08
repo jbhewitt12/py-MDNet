@@ -28,10 +28,10 @@ If you're using this code for your research, please cite:
 ## Requirements
 - Python 3
 - [PyTorch](http://pytorch.org/) and its dependencies 
-– Conda
-– NumPy
-– Numba
-– pyCUDA
+- Conda
+- NumPy
+- Numba
+- pyCUDA
 
 I recommend using Anaconda and the Anaconda Prompt. 
 
