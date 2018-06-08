@@ -65,9 +65,5 @@ An example if you have downloaded a VOT dataset into /dataset:
  python run_tracker.py -s vot2016/matrix -d 
 ```
 
-
- - You can provide a sequence configuration in two ways (see tracking/gen_config.py):
-   - ```python run_tracker.py -s [seq name]```
-   - ```python run_tracker.py -j [json path]```
  
 
