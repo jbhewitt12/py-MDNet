@@ -118,18 +118,10 @@ def train(model, criterion, optimizer, pos_feats, neg_feats, maxiter, in_layer='
 
 def run_mdnet(img_list, init_bbox, vals, gt=None, savefig_dir='', display=False):
 
-    # print(img_list)
-    # print(init_bbox)
-    # print(gt)
-    # print(savefig_dir)
-    # print(display)
-
     # Init bbox
     target_bbox = np.array(init_bbox) #Starting Bounding Box
     result = np.zeros((len(img_list),4))
     result_bb = np.zeros((len(img_list),4))
-    print('initial bbox: ')
-    print(target_bbox)
     result[0] = target_bbox
     result_bb[0] = target_bbox
     count = 0
@@ -373,24 +365,13 @@ def run_mdnet(img_list, init_bbox, vals, gt=None, savefig_dir='', display=False)
 
             new_gt = np.asarray(new_gt)
             init_bbox = new_gt[0]
-            # print(gt)
-            # print(gt[i])
-            # print(gt[i+6])
-            # print('new:')
-            # print(new_gt)
+            
             vals['total_overlap'] += total_overlap
             vals['overlap_count'] += overlap_count
             vals['reinitializations'] += 1
-            # print('before calling run_mdnet')
-            # print (vals['total_overlap'])
-            # print('/')
-            # print (vals['overlap_count'])
+            
             result, result_bb, fps, vals = run_mdnet(new_img_list, init_bbox, vals, new_gt, savefig_dir, display)
 
-            # print('after calling run_mdnet')
-            # print (vals['total_overlap'])
-            # print('/')
-            # print (vals['overlap_count'])
             fps = len(img_list) / spf_total
             return result, result_bb, fps, vals #
 
@@ -434,24 +415,15 @@ if __name__ == "__main__":
     # Run tracker
     result, result_bb, fps, vals = run_mdnet(img_list, init_bbox, vals, gt=gt, savefig_dir=savefig_dir, display=display)
 
-    print('vals[overlap_count]: ')
-    print(vals['overlap_count'])
-    print('vals[total_overlap]: ')
-    print(vals['total_overlap'])
-    print('vals[reinitializations]: ')
+    print('Reinitializations: ')
     print(vals['reinitializations'])
 
-    print('global_overlap_count: ')
-    print(global_overlap_count)
-    print('global_total_overlap: ')
-    print(global_total_overlap)
-
     average_time = global_spf_total/global_spf_count
-    print('Global frames per second:')
+    print('Average Frames per second:')
     print(1/average_time)
 
     mean_overlap = vals['total_overlap']/vals['overlap_count']
-    print('FINAL mean_overlap:')
+    print('Average overlap (Accuracy):')
     print(mean_overlap)
     
     # Save result

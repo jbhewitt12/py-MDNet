@@ -1,37 +1,15 @@
 # py-MDNet
 
-by [Hyeonseob Nam](https://kr.linkedin.com/in/hyeonseob-nam/) and [Bohyung Han](http://cvlab.postech.ac.kr/~bhhan/) at POSTECH
+##Fork notes
 
-## ----------------------------------------------------------
-## Modifications made by jbhewitt12
-- ran all .py files through [2to3](https://docs.python.org/2/library/2to3.html#using-2to3) 
-- added dim=0 paramater to log_softmax() pytorch function to fix error
+This is a fork of [py-MDNet](https://github.com/HyeonseobNam/py-MDNet) by [Hyeonseob Nam](https://kr.linkedin.com/in/hyeonseob-nam/) and [Bohyung Han](http://cvlab.postech.ac.kr/~bhhan/) at POSTECH
 
-## Errors encountered by jbhewitt12
-After opening command prompt in the /tracking folder and running "python run_tracker.py -s DragonBaby -d":
+In this fork, py-MDNet has been converted from Python 2 to Python 3. 
+This means that py-MDNet can be run on Windows for the first time. A dependency of py-MDNet is PyTorch, which is originally designed for Linux and OSX operating systems only. However, the GitHub user 'peterjc123' has made a Windows compatible version [here](https://github.com/peterjc123/pytorch-scripts), but it only runs in Python 3. As a result I converted py-MDNet to Python 3 so that it could be run on Windows.
 
-```
-../modules\model.py:144: UserWarning: Implicit dimension choice for log_softmax has been deprecated. Change the call to include dim=X as an argument.
-  pos_loss = -F.log_softmax(pos_score)[:,1]
-../modules\model.py:145: UserWarning: Implicit dimension choice for log_softmax has been deprecated. Change the call to include dim=X as an argument.
-  neg_loss = -F.log_softmax(neg_score)[:,0]
-Traceback (most recent call last):
-  File "run_tracker.py", line 329, in <module>
-    result, result_bb, fps = run_mdnet(img_list, init_bbox, gt=gt, savefig_dir=savefig_dir, display=display)
-  File "run_tracker.py", line 190, in run_mdnet
-    im = ax.imshow(image, aspect='normal')
-  File "C:\Users\Josh\Anaconda3\lib\site-packages\matplotlib\__init__.py", line 1717, in inner
-    return func(ax, *args, **kwargs)
-  File "C:\Users\Josh\Anaconda3\lib\site-packages\matplotlib\axes\_axes.py", line 5126, in imshow
-    self.set_aspect(aspect)
-  File "C:\Users\Josh\Anaconda3\lib\site-packages\matplotlib\axes\_base.py", line 1292, in set_aspect
-    self._aspect = float(aspect)  # raise ValueError if necessary
-ValueError: could not convert string to float: 'normal'
-```
+I ran all .py files through [2to3](https://docs.python.org/2/library/2to3.html#using-2to3) and then fixed all remaining errors. A notable error that I fixed was to add dim=1 paramater to the log_softmax() pytorch function found in modules/model.py line 148
 
-I added dim=0 paramater to log_softmax() pytorch function in an attempt to fix the error but it only got rid of the UserWarning part of the error. Not sure how to proceed. 
-
-## ----------------------------------------------------------
+I have further modified the code to provide Accuracy, Robustness and Frames Per Second evaluation metrics similar to those used in the VOT Challenge. To include the Robustness metric, I edited the code so that MDNet will now reinitialize when the overlap between the ground truth bounding box and the estimated bounding box drops to 0. Nskip = 5 frames are skipped after failure. I implemented Accuracy and Robustness according to [this paper.](https://arxiv.org/pdf/1503.01313.pdf)
 
 ## Introduction
 Python (PyTorch) implementation of MDNet tracker, which is ~2x faster than the original matlab implementation. 
@@ -47,26 +25,49 @@ If you're using this code for your research, please cite:
 	year = {2016}
 	}
  
-## Prerequisites
-- python 2.7
+## Requirements
+- Python 3
 - [PyTorch](http://pytorch.org/) and its dependencies 
+– Conda
+– NumPy
+– Numba
+– pyCUDA
 
-## Usage
+I recommend using Anaconda and the Anaconda Prompt. 
+
+to install pyCUDA I used:
+```bash
+pip install pycuda-2017.1.1+cuda9185-cp36-cp36m-win_amd64.whl 
+```
+[From this site]( https://www.ibm.com/developerworks/community/blogs/jfp/entry/Installing_PyCUDA_On_Anaconda_For_Windows?lang=en) helped.
+
+To check if CUDA is working, type "numba -s" into the command prompt. This tells you if cuda is working under "__CUDA Information__"
+
+### Pretraining
+ - Download [VGG-M](http://www.vlfeat.org/matconvnet/models/imagenet-vgg-m.mat) (matconvnet model) and save as "models/imagenet-vgg-m.mat"
+ - Download [VOT](http://www.votchallenge.net/) datasets into "dataset/vot201x"
+ - Edit /pretrain/vot-training-sequences.txt to include the sequences you wish to train on
+``` bash
+ cd pretrain
+ python prepro_data.py
+ python train_mdnet.py
+```
 
 ### Tracking
 ```bash
  cd tracking
  python run_tracker.py -s DragonBaby [-d (display fig)] [-f (save fig)]
 ```
+
+An example if you have downloaded a VOT dataset into /dataset:
+```bash
+ cd tracking
+ python run_tracker.py -s vot2016/matrix -d 
+```
+
+
  - You can provide a sequence configuration in two ways (see tracking/gen_config.py):
    - ```python run_tracker.py -s [seq name]```
    - ```python run_tracker.py -j [json path]```
  
-### Pretraining
- - Download [VGG-M](http://www.vlfeat.org/matconvnet/models/imagenet-vgg-m.mat) (matconvnet model) and save as "models/imagenet-vgg-m.mat"
- - Download [VOT](http://www.votchallenge.net/) datasets into "dataset/vot201x"
-``` bash
- cd pretrain
- python prepro_data.py
- python train_mdnet.py
-```
+
